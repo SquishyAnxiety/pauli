@@ -79,11 +79,17 @@
         display: flex;
         justify-content: flex-end;
         margin: 1.25rem 0 0.5rem;
-        padding: 0 1rem;
       }
       .plain { padding: 0; color: var(--main); background: none; border: none; white-space: nowrap; }
 
-      /* Result */
+      .link {
+        color: var(--sub);
+        font-weight: 400;
+        text-decoration: underline dotted;
+        text-underline-offset: 3px;
+      }
+      .link:hover { color: var(--muted); }
+
       .result {
         padding: 0.85rem 1rem 0.6rem;
         border: 1px solid var(--border);
@@ -154,7 +160,7 @@
     <header>
       <img class="logo" src="/static/cat.svg" alt="" />
       <h1>pauli</h1>
-      <p class="sub">turn any text into a random (and funny) german word</p>
+      <p class="sub">turn any text into a random (and funny) german word (<a href="https://github.com/SquishyAnxiety/pauli" class="link" target="_blank" rel="noopener">source</a>)</p>
     </header>
 
     <form class="field" id="form">
