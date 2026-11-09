@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>pauli</title>
+    <meta name="description" content="turn any text into a random (and funny) german word" />
+    <link rel="icon" type="image/svg+xml" href="/static/cat.svg" />
+    <style>
+
+      @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-display: swap;
+        font-weight: 100 900;
+        src: url(/static/inter.woff2) format("woff2");
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #161616;
+        --main: #e8e8e8;
+        --sub: #b4b4b4;
+        --muted: #7c7c7c;
+        --link: rgb(100, 170, 245);
+        --border: hsl(0, 0%, 22%);
+        --radius: 10px;
+      }
+
+      [hidden] { display: none !important; }
+      *, *::before, *::after { box-sizing: border-box; }
+
+      body {
+        margin: 0 auto;
+        padding: 1rem;
+        max-width: calc(550px + 2rem);
+        color: var(--main);
+        background: var(--bg);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.4;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      p { margin: 0; }
+      a { color: var(--link); text-decoration: none; cursor: pointer; }
+      button { font: inherit; cursor: pointer; }
+      button:disabled { opacity: 0.4; cursor: default; }
+
+
+      header { margin: 1.5rem 0 2rem; text-align: center; }
+      .logo { display: block; width: 64px; height: 64px; margin: 0 auto 0.75rem; }
+      h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
+      .sub { margin-top: 0.75rem; color: var(--sub); font-weight: 400; }
+
+      .field {
+        display: flex;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .field:focus-within { border-color: var(--link); }
+      .field input {
+        flex: 1;
+        min-width: 0;
+        padding: 0.75rem 1rem;
+        font: inherit;
+        color: var(--main);
+        background: none;
+        border: none;
+        outline: none;
+      }
+      .field input::placeholder { color: var(--muted); }
+      .field button { padding: 0 1rem; color: var(--link); background: none; border: none; }
+
+      nav {
+        display: flex;
+        justify-content: flex-end;
+        margin: 1.25rem 0 0.5rem;
+        padding: 0 1rem;
+      }
+      .plain { padding: 0; color: var(--main); background: none; border: none; white-space: nowrap; }
+
+      /* Result */
+      .result {
+        padding: 0.85rem 1rem 0.6rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      .fancy { font-size: inherit; word-break: break-word; }
+      .fancy.placeholder { color: var(--muted); }
+      .source {
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-weight: 400;
+        text-align: right;
+        word-break: break-word;
+      }
+      .error { margin-top: 0.5rem; padding: 0 1rem; color: #ff6b5b; font-weight: 400; }
+
+      details { margin-top: 1.25rem; }
+      details + details { margin-top: 0.5rem; }
+      details[open] + details { margin-top: 1rem; }
+      summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--sub);
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+      }
+      summary:hover { color: var(--main); }
+      summary::-webkit-details-marker { display: none; }
+      .chevron {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.75;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transform: rotate(-90deg);
+        transition: transform 0.15s ease;
+      }
+      details[open] .chevron { transform: rotate(0deg); }
+      .panel {
+        margin: 0.6rem 0 0;
+        padding: 0.25rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+
+      pre {
+        margin: 0.75rem 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8rem;
+        color: var(--sub);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .entry { padding: 0.6rem 0; word-break: break-word; }
+      .entry + .entry { border-top: 1px solid var(--border); }
+      .muted { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+      .clear { display: inline-block; margin: 0.25rem 0 0.75rem; font-size: 0.85rem; }
+
+      .note { margin: 0.6rem 0 0; color: var(--sub); font-weight: 400; font-size: 0.9rem; }    
+    </style>
+  </head>
+  <body>
+    <header>
+      <img class="logo" src="/static/cat.svg" alt="" />
+      <h1>pauli</h1>
+      <p class="sub">turn any text into a random (and funny) german word</p>
+    </header>
+
+    <form class="field" id="form">
+      <input id="input" type="text" placeholder="input text here"
+             maxlength="{{ max_length }}" aria-label="Text for pauli" autofocus>
+      <button id="submit" type="submit" disabled>convert</button>
+    </form>
+
+    <nav>
+      <button id="copy" class="plain" disabled>copy to clipboard</button>
+    </nav>
+
+    <div class="result">
+      <p id="output" class="fancy placeholder">example output</p>
+      <p id="source" class="source">- source text</p>
+    </div>
+    <p id="error" class="error" hidden></p>
+
+    <details>
+      <summary>API usage <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg></summary>
+      <p class="note">Simply send a POST request to /api with the desired input string in the content field to receive the converted string in result. <br><br> See example below:</p>
+      <div class="panel">
+        <pre>curl -X POST -H "Content-Type: application/json" \
+  -d '{ "content": "monster energy" }' \
+  <span id="api-url">/api</span>
+
+{ "result": "{{ example }}" }</pre>
+      </div>
+    </details>
+
+    <details id="history" hidden>
+      <summary>History <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg></summary>
+      <div class="panel">
+        <div id="entries"></div>
+        <a id="clear" class="clear">clear history</a>
+      </div>
+    </details>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const input = $("input"), submit = $("submit"), copyButton = $("copy");
+      const output = $("output"), source = $("source"), error = $("error");
+      $("api-url").textContent = `${location.origin}/api`;
+
+      let result = "";
+
+      function showError(message) {
+        error.textContent = message;
+        error.hidden = !message;
+      }
+
+      input.addEventListener("input", () => {
+        submit.disabled = !input.value.trim();
+      });
+
+      $("form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const content = input.value.trim();
+        if (!content || submit.dataset.busy) return;
+
+        submit.dataset.busy = "1";
+        submit.textContent = "…";
+        showError("");
+        try {
+          const res = await fetch("/api", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.status || `Request failed (${res.status})`);
+
+          result = data.result;
+          output.textContent = result;
+          output.classList.remove("placeholder");
+          source.textContent = `- ${content}`;
+          copyButton.disabled = false;
+          addToHistory(content, result);
+        } catch (e) {
+          showError(e.message || "Something went wrong.");
+        } finally {
+          delete submit.dataset.busy;
+          submit.textContent = "convert";
+        }
+      });
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(result);
+          copyButton.textContent = "copied";
+          setTimeout(() => { copyButton.textContent = "copy to clipboard"; }, 2000);
+        } catch {
+          showError("Could not copy to the clipboard.");
+        }
+      });
+
+      // history
+      const KEY = "convert-history";
+      const LIMIT = 50;
+
+      function loadHistory() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(KEY));
+          return Array.isArray(saved) ? saved : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveHistory(entries) {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(entries.slice(0, LIMIT)));
+        } catch {
+          // storage unavailable: ignore
+        }
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const entries = loadHistory();
+        $("history").hidden = entries.length === 0;
+        $("entries").replaceChildren(...entries.map((entry) => {
+          const row = document.createElement("div");
+          row.className = "entry";
+          const out = document.createElement("p");
+          out.textContent = entry.output;
+          const meta = document.createElement("p");
+          meta.className = "muted";
+          meta.textContent = `${entry.input} · ${new Date(entry.createdAt).toLocaleString()}`;
+          row.append(out, meta);
+          return row;
+        }));
+      }
+
+      function addToHistory(inputText, outputText) {
+        saveHistory([{ createdAt: Date.now(), input: inputText, output: outputText }, ...loadHistory()]);
+      }
+
+      $("clear").addEventListener("click", () => saveHistory([]));
+      renderHistory();
+    </script>
+  </body>
+</html>

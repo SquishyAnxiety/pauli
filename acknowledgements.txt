@@ -1,0 +1,6 @@
+This project is (as you can probably tell) heavily inspired by https://github.com/Superioz/fancify.
+The initial word list as of today is also from that repo.
+
+UI is inspired by https://kanye.rest/
+
+Logo is based on this but modified: https://simplepixelart.com/art/cat-5111
